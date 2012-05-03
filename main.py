@@ -3,6 +3,10 @@
 
 import sys
 import datetime
+import codecs
+
+INPUT_ENCODING = 'iso 8859-1'
+OUTPUT_ENCODING = 'utf-8'
 
 
 class Phrase(object):
@@ -25,8 +29,8 @@ class Phrase(object):
         self.endTime += other
         return self
 
-    def __str__(self):
-        return '''%d
+    def __unicode__(self):
+        return u'''%d
 %s --> %s
 %s
 ''' % (self.index,
@@ -106,7 +110,13 @@ class SrtParser(object):
                 == 0
 
 
-if __name__ == '__main__':
-    with open(sys.argv[1]) as fp:
+def subsGenerator(fName, encoding):
+    with codecs.open(sys.argv[1], 'r', encoding=encoding) as fp:
         for item in SrtParser(fp).parse():
-            print item + datetime.timedelta(seconds=15)
+            yield item
+
+
+if __name__ == '__main__':
+    for item in subsGenerator(sys.argv[1], INPUT_ENCODING):
+        print unicode(item
+                      + datetime.timedelta(seconds=15)).encode(OUTPUT_ENCODING)
