@@ -108,6 +108,5 @@ class SrtParser(object):
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as fp:
-        parser = SrtParser(fp)
-        for e in parser.parse():
-            print e + datetime.timedelta(seconds=15)
+        for item in SrtParser(fp).parse():
+            print item + datetime.timedelta(seconds=15)
