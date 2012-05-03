@@ -92,18 +92,16 @@ class SrtParser(object):
             self.nextLine()
 
     def parse(self):
-        ast = []
         self.nextLine()
         while True:
             if self.currentLine is None:
-                return ast
+                return
             self.skipBlankLines()
             assert self.currentLine is None or len(self.currentLine) > 0
             if self.currentLine is None:
-                return ast
+                return
             assert len(self.currentLine) > 0
-            phrase = self.parsePhrase()
-            ast.append(phrase)
+            yield self.parsePhrase()
             assert self.currentLine is None or len(self.currentLine) \
                 == 0
 
