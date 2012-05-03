@@ -39,10 +39,12 @@ class SrtParser(object):
     def __init__(self, fp):
         self.fp = fp
         self.currentLine = None
+        self.currentIndex = 0
 
     def nextLine(self):
         try:
             self.currentLine = self.fp.next().strip()
+            self.currentIndex += 1
         except StopIteration:
             self.currentLine = None
 
@@ -50,7 +52,8 @@ class SrtParser(object):
         try:
             return int(self.currentLine)
         except ValueError:
-            raise Exception('Expecting a number')
+            raise Exception('Expecting a number in line %d'
+                            % self.currentIndex)
 
     def parseTimes(self):
         assert len(self.currentLine) > 0
@@ -60,19 +63,18 @@ class SrtParser(object):
                     datetime.datetime.strptime(self.currentLine[17:29],
                     '%H:%M:%S,%f'))
         except:
-            raise Exception('Error in times parsing')
+            raise Exception('Error in times parsing in line %d'
+                            % self.currentIndex)
 
     def parseContent(self):
-        assert len(self.currentLine) > 0
+        assert len(self.currentLine) > 0, \
+            'Expecting content in line %d' % self.currentIndex
         ret = []
-        try:
-            while self.currentLine is not None \
-                and len(self.currentLine) > 0:
-                ret.append(self.currentLine)
-                self.nextLine()
-            return '\n'.join(ret)
-        except:
-            raise Exception('Error in parsing content')
+        while self.currentLine is not None and len(self.currentLine) \
+            > 0:
+            ret.append(self.currentLine)
+            self.nextLine()
+        return '\n'.join(ret)
 
     def parsePhrase(self):
         assert len(self.currentLine) > 0
