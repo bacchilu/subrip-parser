@@ -53,7 +53,7 @@ class SrtParser(object):
             raise Exception('Expecting a number')
 
     def parseTimes(self):
-        self.nextLine()
+        assert len(self.currentLine) > 0
         try:
             return (datetime.datetime.strptime(self.currentLine[:12],
                     '%H:%M:%S,%f'),
@@ -63,12 +63,11 @@ class SrtParser(object):
             raise Exception('Error in times parsing')
 
     def parseContent(self):
+        assert len(self.currentLine) > 0
         ret = []
-        self.nextLine()
         try:
-            assert self.currentLine != ''
-            while self.currentLine != '' and self.currentLine \
-                is not None:
+            while self.currentLine is not None \
+                and len(self.currentLine) > 0:
                 ret.append(self.currentLine)
                 self.nextLine()
             return '\n'.join(ret)
@@ -76,24 +75,39 @@ class SrtParser(object):
             raise Exception('Error in parsing content')
 
     def parsePhrase(self):
+        assert len(self.currentLine) > 0
         index = self.parseNumber()
+        self.nextLine()
         (st, et) = self.parseTimes()
+        self.nextLine()
         content = self.parseContent()
+        assert self.currentLine is None or len(self.currentLine) == 0
         return Phrase(index, st, et, content)
+
+    def skipBlankLines(self):
+        while self.currentLine is not None and len(self.currentLine) \
+            == 0:
+            self.nextLine()
 
     def parse(self):
         ast = []
+        self.nextLine()
         while True:
-            self.nextLine()
-            if self.currentLine is not None:
-                phrase = self.parsePhrase()
-                ast.append(phrase)
-            else:
+            if self.currentLine is None:
                 return ast
+            self.skipBlankLines()
+            assert self.currentLine is None or len(self.currentLine) > 0
+            if self.currentLine is None:
+                return ast
+            assert len(self.currentLine) > 0
+            phrase = self.parsePhrase()
+            ast.append(phrase)
+            assert self.currentLine is None or len(self.currentLine) \
+                == 0
 
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as fp:
-        ast = SrtParser(fp).parse()
-        for p in ast:
-            print p + datetime.timedelta(seconds=15)
+        parser = SrtParser(fp)
+        for e in parser.parse():
+            print e + datetime.timedelta(seconds=15)
